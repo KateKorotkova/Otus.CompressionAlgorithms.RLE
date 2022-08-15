@@ -16,4 +16,13 @@
     <ProjectReference Include="..\Otus.CompressionAlgorithms.RLE\Otus.CompressionAlgorithms.RLE.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestData\test_for_decode.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\test_for_encode.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
