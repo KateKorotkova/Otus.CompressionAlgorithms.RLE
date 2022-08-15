@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -35,6 +36,72 @@ namespace Otus.CompressionAlgorithms.RLE.Logic
             return WriteToOutputFile(fileName, "decoded", decodedString);
         }
 
+        public string EncodeViaImprovedAlgorithm(IEnumerable<char> characters)
+        {
+            var encodedString = EncodeInternal(characters);
+
+            var result = new StringBuilder();
+            var singleCharacters = new StringBuilder();
+            var singleCharactersCounter = 0;
+            for (var i = 0; i < encodedString.Length; i = i + 2)
+            {
+                var localCounter = encodedString[i];
+                var localCharacter = encodedString[i + 1];
+
+                if (localCounter == '1')
+                {
+                    singleCharactersCounter--;
+                    singleCharacters.Append(localCharacter);
+                }
+                else
+                {
+                    var combinedSingleCharacters = singleCharactersCounter == 0 ? string.Empty : $"{singleCharactersCounter}{singleCharacters}";
+                    result
+                        .Append(combinedSingleCharacters)
+                        .Append(localCounter).Append(localCharacter);
+                    
+                    singleCharactersCounter = 0;
+                    singleCharacters.Clear();
+                }
+            }
+
+            var lastSingleCharacters = singleCharactersCounter == 0 ? string.Empty : $"{singleCharactersCounter}{singleCharacters}";
+
+            return result.Append(lastSingleCharacters).ToString();
+        }
+
+        public char[] DecodeViaImprovedAlgorithm(string compressedString)
+        {
+            var result = new List<char>();
+
+            for (var i = 0; i < compressedString.Length; i++)
+            {
+                var character = compressedString[i];
+
+                if (char.IsNumber(character))
+                {
+                    var number = int.Parse(character.ToString());
+                    for (var j = 0; j < number; j++)
+                    {
+                        result.Add(compressedString[i + 1]);
+                    }
+                }
+                else if (character == '-')
+                {
+                    var singleCharactersLength = int.Parse(compressedString[i + 1].ToString());
+                    var endOfSingleCharacters = i + 2 + singleCharactersLength;
+                    for (var j = i + 2; j < endOfSingleCharacters; j++)
+                    {
+                        result.Add(compressedString[j]);
+                    }
+
+                    i = endOfSingleCharacters - 1;
+                }
+            }
+
+            return result.ToArray();
+        }
+
 
         #region Support Methods
 
@@ -66,15 +133,16 @@ namespace Otus.CompressionAlgorithms.RLE.Logic
         {
             var result = new List<char>();
 
-            for (var i = 0; i < compressedString.Length; i++)
+            for (var i = 0; i < compressedString.Length; i = i + 2)
             {
-                var character = compressedString[i];
+                var counter = compressedString[i];
+                var character = compressedString[i + 1];
 
-                if (char.IsNumber(character))
+                if (char.IsNumber(counter))
                 {
-                    for (var j = 0; j < int.Parse(character.ToString()); j++)
+                    for (var j = 0; j < int.Parse(counter.ToString()); j++)
                     {
-                        result.Add(compressedString[i + 1]);
+                        result.Add(character);
                     }
                 }
             }
